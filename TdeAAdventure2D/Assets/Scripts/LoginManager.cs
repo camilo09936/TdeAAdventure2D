@@ -1,7 +1,9 @@
-using System;
+using System.Collections;
+using System.Text;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class LoginManager : MonoBehaviour
@@ -12,6 +14,9 @@ public class LoginManager : MonoBehaviour
 
     [Header("Feedback")]
     [SerializeField] private TextMeshProUGUI textoError;
+
+    [Header("COnfiguracion de API")]
+    [SerializeField] private string apiUrl= "https://localhost:7099/api/Jugador/Login";
 
     private const string ValidarEmail = @"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
 

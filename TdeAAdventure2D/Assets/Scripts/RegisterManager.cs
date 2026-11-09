@@ -1,6 +1,9 @@
+using System.Collections;
+using System.Text;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class RegisterManager : MonoBehaviour
@@ -14,6 +17,8 @@ public class RegisterManager : MonoBehaviour
     [Header("Feedback")]
     [SerializeField] private TextMeshProUGUI textoError;
 
+    [Header("Configuración de API")]
+    [SerializeField] private string apiUrl = "https://localhost:7099/api/Jugador/Create";
     private const string ValidarEmail = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9._]+\.[a-zA-Z]{2,}$";
 
     private readonly Color colorNormal = Color.white;
@@ -44,9 +49,40 @@ public class RegisterManager : MonoBehaviour
         if (!ValidarFormulario(usuario, email, password, confirmar))
             return;
 
-        Debug.Log($"Enviando registro -> Usuario: {usuario}, Email: {email}");
         MostrarError("");
+        StartCoroutine(EnviarRegistroApi(usuario, email, password));
+    }
 
+    private IEnumerator EnviarRegistroApi(string usuario, string email, string password)
+    {
+        // Construccion manual del Json que coincida con el modelo jugador
+        string jsonBody= $"{{\"nombreUsuario\":\"{usuario}\",\"email\":\"{email}\",\"password\":\"{password}\"}}";
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonBody);
+
+        using (UnityWebRequest request = new UnityWebRequest(apiUrl, "POST"))
+        {
+            request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+            request.certificateHandler = new BypassCertificateHandler();
+
+            yield return request.SendWebRequest();
+
+            if (request.result== UnityWebRequest.Result.Success)
+            {
+                Debug.Log("Registro exitoso: " + request.downloadHandler.text);
+                LimpiarCampos();
+            }
+            else if (request.responseCode == 409)
+            {
+                MostrarError("El nombre de usuario o correo ya está registrado.");
+            }
+            else
+            {
+                MostrarError("Error al conectar con el sevidor.");
+                Debug.LogError($"Error {request.responseCode}: {request.error}");
+            }
+        }
     }
     private void ValidarUsuarioEnVivo()
     {
