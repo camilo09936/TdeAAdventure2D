@@ -22,7 +22,7 @@ public partial class GameManager : MonoBehaviour
     public float RunTime { get; private set; }
     public bool Dead { get; private set; }
     public bool InMenu { get; private set; }
-    public int Score { get { return Mathf.FloorToInt(Height) + Bonus; } }
+    public int Score { get { return Mathf.FloorToInt(Height); } }
     public int Level { get { return Difficulty.Level(Height); } }
 
     // Monedero del jugador actual: para la tienda de skins y objetos
@@ -54,6 +54,8 @@ public partial class GameManager : MonoBehaviour
         startY = startPos.y;
 
         if (GetComponent<MainMenu>() == null) gameObject.AddComponent<MainMenu>();
+        if (GetComponent<SkyAmbience>() == null) gameObject.AddComponent<SkyAmbience>();
+        if (player.GetComponent<PlayerVisual>() == null) player.gameObject.AddComponent<PlayerVisual>();
         StartCoroutine(SkinLoader.Aplicar(player.GetComponent<PlayerVisual>()));
         EnterMenu();
     }
@@ -148,9 +150,8 @@ public partial class GameManager : MonoBehaviour
     public void AddPoints(int pts)
     {
         if (Dead || InMenu) return;
-        Bonus += pts;
         Coins++;
-        popText = "+" + pts;
+        popText = pts >= 25 ? "+1 gema" : "+1 moneda";
         popTimer = 0.8f;
     }
 

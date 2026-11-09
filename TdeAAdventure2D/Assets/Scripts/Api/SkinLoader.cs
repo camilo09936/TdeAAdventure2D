@@ -26,9 +26,23 @@ public static class SkinLoader
         Texture2D hoja = null;
         if (cos != null && !string.IsNullOrEmpty(cos.spritePath))
         {
-            hoja = Resources.Load<Texture2D>(cos.spritePath);
+            hoja = Cargar(cos.spritePath);
             if (hoja == null) Debug.LogWarning("[Skin] No existe Resources/" + cos.spritePath);
         }
         visual.ApplySkin(hoja);
+    }
+
+    public static Texture2D Cargar(string spritePatch)
+    {
+        if (string.IsNullOrEmpty(spritePatch)) return null;
+        Texture2D t= Resources.Load<Texture2D>(spritePatch);
+        if (t != null) return t;
+
+        string nombre = System.IO.Path.GetFileName(spritePatch).ToLowerInvariant();
+        foreach (Texture2D x in Resources.LoadAll<Texture2D>("Skins"))
+            if (x != null && x.name.ToLowerInvariant() == nombre) return x;
+
+        Debug.LogWarning("[Skin] No hay imagen para Resources/" + spritePatch);
+        return null;
     }
 }

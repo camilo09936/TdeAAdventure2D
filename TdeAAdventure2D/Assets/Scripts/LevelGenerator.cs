@@ -13,6 +13,11 @@ public partial class LevelGenerator : MonoBehaviour
     public float generateAhead = 16f;   // cuanto crear por encima del jugador
     public float cleanupBelow = 14f;    // cuanto conservar por debajo del jugador
 
+    [Header("Pisos de la Universidad")]
+    public float floorEvery = 50f;
+    GameObject floorTemplate;
+    float refTop, nextFloorH;
+
     readonly List<GameObject> tracked = new List<GameObject>();
     Transform holder;
     float nextY, lastX;
@@ -21,6 +26,10 @@ public partial class LevelGenerator : MonoBehaviour
     void Awake()
     {
         holder = new GameObject("Plataformas").transform;
+        floorTemplate = GameObject.Find("Background");
+        GameObject ground = GameObject.Find("Ground");
+        Collider2D gc = ground != null ? ground.GetComponent<Collider2D>() : null;
+        refTop = gc != null ? gc.bounds.max.y : -1.06f;
         ResetLevel();
     }
 
@@ -35,6 +44,7 @@ public partial class LevelGenerator : MonoBehaviour
         lastType = PlatformType.Static;
         nextY = Mathf.Max(startY, 0.95f);
         Spawn(PlatformType.Static, lastX, nextY, 3f, 0f, 0f, 0.5f);
+        nextFloorH = floorEvery;
     }
 
     void Update()
@@ -64,6 +74,15 @@ public partial class LevelGenerator : MonoBehaviour
         // Separacion vertical: crece con la dificultad (el salto llega a unos 2.8)
         float gap = Random.Range(Mathf.Lerp(1.5f, 1.8f, d), Mathf.Lerp(1.9f, 2.35f, d));
         nextY += gap;
+
+        if (floorEvery > 0f && nextY >= heightOrigin + nextFloorH - 1f)
+        {
+            SpawnFloor(nextY);
+            nextY -= 0.25f;
+            lastType = PlatformType.Static;
+            nextFloorH += floorEvery;
+            return;
+        }
 
         // Mas plataformas moviles y que se caen mientras mas alto
         float movingChance = Mathf.Lerp(0.12f, 0.45f, d);
@@ -122,5 +141,33 @@ public partial class LevelGenerator : MonoBehaviour
     void Track(GameObject g)
     {
         tracked.Add(g);
+    }
+
+    void SpawnFloor(float top)
+    {
+        var go = new GameObject("Piso");
+        go.transform.SetParent(holder, false);
+        go.transform.position = new Vector3(0f, top - 0.25f, 0f);
+
+        var eff = go.AddComponent<PlatformEffector2D>();
+        eff.useOneWay = true;
+        eff.surfaceArc = 160f;
+        eff.useSideFriction = false;
+        eff.useSideBounce = false;
+
+        var bc = go.AddComponent<BoxCollider2D>();
+        bc.size = new Vector2(18f, 0.5f);
+        bc.usedByEffector = true;
+        tracked.Add(go);
+
+        if (floorTemplate != null)
+        {
+            var copy = Instantiate(floorTemplate,
+                new Vector3(0f, top - refTop, floorTemplate.transform.position.z), Quaternion.identity);
+            copy.name = "PisoFondo";
+            var wall = copy.GetComponent<SpriteRenderer>();
+            if (wall != null) wall.sortingOrder = -7;   // por encima del cielo del nivel 2
+            tracked.Add(copy);
+        }
     }
 }

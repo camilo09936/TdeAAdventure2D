@@ -60,12 +60,12 @@ public partial class GameManager
         {
             float y = Screen.height * 0.24f;
             string estado = guardando ? "Guardando partida..."
-                          : (errorGuardado.Length > 0 ? errorGuardado : "+" + Coins + " monedas al monedero");
-            Color estadoColor = errorGuardado.Length > 0 ? new Color(1f, 0.5f, 0.45f) : gold;
+              : (errorGuardando.Length > 0 ? errorGuardando : "+" + Coins + " monedas al monedero");
+            Color estadoColor = errorGuardando.Length > 0 ? new Color(1f, 0.5f, 0.45f) : gold;
 
             Text(new Rect(0f, y, sw, 80f * s), "Perdiste", mid, sHuge, white);
             Text(new Rect(0f, y + 70f * s, sw, 40f * s), deathReason, mid, sMed, new Color(1f, 0.5f, 0.45f));
-            Text(new Rect(0f, y + 110f * s, sw, 40f * s), "Puntos: " + Score + "  (altura " + h + " + bonus " + Bonus + ")", mid, sMed, white);
+            Text(new Rect(0f, y + 110f * s, sw, 40f * s), "Puntos: " + Score + "  (altura " + h + " m)", mid, sMed, white);
             Text(new Rect(0f, y + 150f * s, sw, 40f * s),
                 newBest ? "Nuevo record personal!" : "Tiempo: " + RunTime.ToString("0.0") + " s", mid, sMed, gold);
             Text(new Rect(0f, y + 190f * s, sw, 40f * s), estado, mid, sMed, estadoColor);

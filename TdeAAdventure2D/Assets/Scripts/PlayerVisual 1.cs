@@ -53,8 +53,6 @@ public partial class PlayerVisual : MonoBehaviour
 
         pc.Jumped += OnJumped;
         pc.Landed += OnLanded;
-        pc.Jumped += OnJumped;
-        pc.Landed += OnLanded;
         ok = true;
     }
 
@@ -80,6 +78,8 @@ public partial class PlayerVisual : MonoBehaviour
             Destroy(visual.gameObject);
             visual = null;
         }
+        pc.Jumped -= OnJumped;
+        pc.Landed -= OnLanded;
         Build();
     }
 

@@ -14,25 +14,33 @@ public partial class MainMenu : MonoBehaviour
     static readonly Color Mine = new Color(0.55f, 0.95f, 1f);
     static readonly Color DarkText = new Color(0.02f, 0.18f, 0.10f);
 
-    Texture2D bg, logo;
+    Texture2D bg, bgTienda, logo;
     Page page = Page.Home;
     bool wasInMenu;
     Vector2 scroll;
 
-    static Texture2D FindImage(string word)
+    static Texture2D FindImage(string word, string exclude=null)
     {
         Texture2D[] all = Resources.LoadAll<Texture2D>("Menu");
         foreach (Texture2D t in all)
-            if (t != null && t.name.ToLowerInvariant().Contains(word)) return t;
+        {
+            if (t == null) continue;
+            string n = t.name.ToLowerInvariant();
+            if (!n.Contains(word)) continue;
+            if (exclude != null && n.Contains(exclude)) continue;
+            return t;
+        }
         return null;
     }
 
     void Awake()
     {
-        bg = FindImage("fondo");
+        bg = FindImage("fondo", "tienda");
         logo = FindImage("logo");
+        bgTienda = FindImage("tienda");
         if (bg != null) bg.wrapMode = TextureWrapMode.Clamp;
         if (logo != null) logo.wrapMode = TextureWrapMode.Clamp;
+        if (bgTienda != null) bgTienda.wrapMode= TextureWrapMode.Clamp;
     }
 
     void Update()
@@ -60,15 +68,16 @@ public partial class MainMenu : MonoBehaviour
 
     void DrawBackground(float w, float h)
     {
-        if (bg != null)
+        Texture2D img = (page == Page.Shop && bgTienda != null) ? bgTienda : bg;
+        if (img != null)
         {
-            float imgAspect = (float)bg.width / bg.height;
+            float imgAspect = (float)img.width / img.height;
             float scrAspect = w / h;
             float visW = Mathf.Min(1f, scrAspect / imgAspect);
             float visH = Mathf.Min(1f, imgAspect / scrAspect);
             float t = Mathf.SmoothStep(0f, 1f, Mathf.PingPong(Time.unscaledTime * 0.04f, 1f));
             Rect uv = new Rect((1f - visW) * 0.5f, (1f - visH) * t, visW, visH);
-            GUI.DrawTextureWithTexCoords(new Rect(0f, 0f, w, h), bg, uv);
+            GUI.DrawTextureWithTexCoords(new Rect(0f, 0f, w, h), img, uv);
         }
         else
         {
