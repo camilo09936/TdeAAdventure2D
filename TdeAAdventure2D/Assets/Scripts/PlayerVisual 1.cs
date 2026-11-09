@@ -20,9 +20,17 @@ public partial class PlayerVisual : MonoBehaviour
     float sqX = 1f, sqY = 1f, sqVx, sqVy;
     float headAng, headAngVel, headY, headYVel;
 
+    Sprite[] defaultFrames;
     void Awake()
     {
         pc = GetComponent<PlayerController>();
+        defaultFrames = pc.frames;
+        Build();
+    }
+
+    void Build()
+    {
+        ok = false;
         if (pc.frames == null || pc.frames.Length < 6 || pc.frames[0] == null || pc.frames[5] == null)
             return; // sin cuadros: se queda el dibujo normal
 
@@ -45,7 +53,34 @@ public partial class PlayerVisual : MonoBehaviour
 
         pc.Jumped += OnJumped;
         pc.Landed += OnLanded;
+        pc.Jumped += OnJumped;
+        pc.Landed += OnLanded;
         ok = true;
+    }
+
+    public void ApplySkin(Texture2D hoja)
+    {
+        if (hoja == null)
+        {
+            pc.frames = defaultFrames;
+        }
+        else
+        {
+            float ppu = defaultFrames[0].pixelsPerUnit;
+            int fw = hoja.width / 6;
+            var f = new Sprite[6];
+            for (int i = 0; i < 6; i++)
+                f[i] = Sprite.Create(hoja, new Rect(i * fw, 0, fw, hoja.height), new Vector2(0.5f, 0f), ppu, 0, SpriteMeshType.FullRect);
+            pc.frames = f;
+        }
+
+        if (visual != null)
+        {
+            visual.gameObject.SetActive(false);
+            Destroy(visual.gameObject);
+            visual = null;
+        }
+        Build();
     }
 
     void OnDestroy()

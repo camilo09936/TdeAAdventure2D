@@ -1,13 +1,11 @@
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-// Menu de inicio: logo, fondo, nombre del jugador y ranking.
-// Las imagenes se leen de Assets/Resources/Menu: cualquier imagen con "logo" en el nombre
-// es el logo, y la que tenga "fondo" es el fondo. Si faltan, el menu funciona igual.
-// Partes: MainMenu.cs (inicio), MainMenuRanking.cs (ranking), MainMenuStyles.cs (estilos).
+// Menu de inicio: logo, fondo, datos del jugador logueado, ranking y tienda.
+// Partes: MainMenu.cs (inicio), MainMenuRanking.cs, MainMenuShop.cs, MainMenuStyles.cs (estilos).
 public partial class MainMenu : MonoBehaviour
 {
-    enum Page { Home, Ranking }
+    enum Page { Home, Ranking, Shop }
 
     static readonly Color Lime = new Color(0.60f, 0.78f, 0.12f);
     static readonly Color Gold = new Color(1f, 0.85f, 0.25f);
@@ -17,24 +15,10 @@ public partial class MainMenu : MonoBehaviour
     static readonly Color DarkText = new Color(0.02f, 0.18f, 0.10f);
 
     Texture2D bg, logo;
-    string nameInput = "", message = "";
     Page page = Page.Home;
-    bool wasInMenu, focusDone;
-    int tab;
+    bool wasInMenu;
     Vector2 scroll;
-    List<PlayerRecord> bestList = new List<PlayerRecord>();
-    List<PlayerRecord> totalList = new List<PlayerRecord>();
 
-    // Se agrega solo al GameManager al empezar (no hay que arrastrarlo a mano)
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    static void AutoAttach()
-    {
-        GameManager gm = GameManager.Instance;
-        if (gm != null && gm.GetComponent<MainMenu>() == null)
-            gm.gameObject.AddComponent<MainMenu>();
-    }
-
-    // Busca en Resources/Menu una imagen cuyo nombre contenga la palabra (sin importar mayusculas)
     static Texture2D FindImage(string word)
     {
         Texture2D[] all = Resources.LoadAll<Texture2D>("Menu");
@@ -49,27 +33,14 @@ public partial class MainMenu : MonoBehaviour
         logo = FindImage("logo");
         if (bg != null) bg.wrapMode = TextureWrapMode.Clamp;
         if (logo != null) logo.wrapMode = TextureWrapMode.Clamp;
-        nameInput = ScoreBoard.LastName;
     }
 
     void Update()
     {
         GameManager gm = GameManager.Instance;
         bool inMenu = gm != null && gm.InMenu;
-        if (inMenu && !wasInMenu)
-        {
-            Refresh();
-            page = Page.Home;
-            message = "";
-            focusDone = false;
-        }
+        if (inMenu && !wasInMenu) page = Page.Home;
         wasInMenu = inMenu;
-    }
-
-    void Refresh()
-    {
-        bestList = ScoreBoard.ByBest();
-        totalList = ScoreBoard.ByTotal();
     }
 
     void OnGUI()
@@ -83,14 +54,14 @@ public partial class MainMenu : MonoBehaviour
         float w = Screen.width, h = Screen.height, s = h / 720f;
         DrawBackground(w, h);
         if (page == Page.Home) DrawHome(w, h, s);
-        else DrawRanking(w, h, s);
+        else if (page == Page.Ranking) DrawRanking(w, h, s);
+        else DrawShop(w, h, s);
     }
 
     void DrawBackground(float w, float h)
     {
         if (bg != null)
         {
-            // La imagen es alta: se ve un tramo y la vista sube despacio por el edificio y vuelve a bajar
             float imgAspect = (float)bg.width / bg.height;
             float scrAspect = w / h;
             float visW = Mathf.Min(1f, scrAspect / imgAspect);
@@ -111,7 +82,7 @@ public partial class MainMenu : MonoBehaviour
         Event e = Event.current;
         if (e.type == EventType.KeyDown && (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter))
         {
-            TryStart();
+            GameManager.Instance.StartRun();
             e.Use();
             return;
         }
@@ -119,7 +90,6 @@ public partial class MainMenu : MonoBehaviour
         float top = 24f * s;
         if (logo != null)
         {
-            // El logo se ajusta para que quepa siempre: maximo 72% del ancho y 38% del alto
             float lw = Mathf.Min(w * 0.72f, 900f * s);
             float lh = lw * logo.height / logo.width;
             float maxH = h * 0.38f;
@@ -136,48 +106,29 @@ public partial class MainMenu : MonoBehaviour
         float pw = Mathf.Min(w * 0.9f, 520f * s);
         float px = (w - pw) * 0.5f;
         float pad = 24f * s;
-        GUI.DrawTexture(new Rect(px, top, pw, 250f * s), tPanel);
-        Label(new Rect(px, top + 14f * s, pw, 34f * s), "Escribe tu nombre para jugar", 24, Color.white);
+        GUI.DrawTexture(new Rect(px, top, pw, 300f * s), tPanel);
 
-        GUI.SetNextControlName("nombre");
-        sField.fontSize = Mathf.RoundToInt(30f * s);
-        nameInput = GUI.TextField(new Rect(px + pad, top + 56f * s, pw - 2f * pad, 52f * s), nameInput, ScoreBoard.MaxName, sField);
-        if (!focusDone)
-        {
-            GUI.FocusControl("nombre");
-            focusDone = true;
-        }
-
-        if (message.Length > 0)
-            Label(new Rect(px, top + 112f * s, pw, 28f * s), message, 20, new Color(1f, 0.55f, 0.5f));
+        JugadorDto j = SessionManager.JugadorActual;
+        Label(new Rect(px, top + 10f * s, pw, 36f * s), "Jugador: " + (j != null ? j.nombreUsuario : ""), 26, Color.white);
+        Label(new Rect(px, top + 46f * s, pw, 30f * s),
+            "Monedas: " + (j != null ? j.monedas : 0) + "     Mejor: " + (j != null ? j.puntuacionMaxima : 0), 22, Gold);
 
         sPrimary.fontSize = Mathf.RoundToInt(30f * s);
-        if (GUI.Button(new Rect(px + pad, top + 142f * s, pw - 2f * pad, 52f * s), "JUGAR", sPrimary))
-            TryStart();
+        if (GUI.Button(new Rect(px + pad, top + 86f * s, pw - 2f * pad, 52f * s), "JUGAR", sPrimary))
+            GameManager.Instance.StartRun();
 
         sSecondary.fontSize = Mathf.RoundToInt(22f * s);
-        if (GUI.Button(new Rect(px + pad, top + 202f * s, pw - 2f * pad, 36f * s), "RANKING", sSecondary))
-        {
-            Refresh();
-            scroll = Vector2.zero;
-            page = Page.Ranking;
-        }
+        if (GUI.Button(new Rect(px + pad, top + 148f * s, pw - 2f * pad, 38f * s), "RANKING", sSecondary)) AbrirRanking();
+        if (GUI.Button(new Rect(px + pad, top + 194f * s, pw - 2f * pad, 38f * s), "TIENDA", sSecondary)) AbrirTienda();
+        if (GUI.Button(new Rect(px + pad, top + 240f * s, pw - 2f * pad, 38f * s), "CERRAR SESIÓN", sSecondary)) CerrarSesion();
 
-        if (bestList.Count > 0)
-            Label(new Rect(0f, h - 92f * s, w, 30f * s), "Mejor puntaje: " + bestList[0].name + " - " + bestList[0].best, 22, Gold);
         Label(new Rect(0f, h - 56f * s, w, 30f * s), "A / D: mover      Espacio: saltar", 20, Color.white);
     }
 
-    void TryStart()
+    void CerrarSesion()
     {
-        string n = ScoreBoard.Clean(nameInput);
-        if (n.Length == 0)
-        {
-            message = "Escribe un nombre para empezar";
-            return;
-        }
-        message = "";
-        GUIUtility.keyboardControl = 0;
-        GameManager.Instance.StartRun(n);
+        SessionManager.CerrarSesion();
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(GameManager.EscenaLogin);
     }
 }
