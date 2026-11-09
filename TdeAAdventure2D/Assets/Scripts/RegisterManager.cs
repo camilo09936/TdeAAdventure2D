@@ -1,10 +1,6 @@
-using System.Collections;
-using System.Text;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Networking;
-using UnityEngine.UI;
 
 public class RegisterManager : MonoBehaviour
 {
@@ -17,19 +13,20 @@ public class RegisterManager : MonoBehaviour
     [Header("Feedback")]
     [SerializeField] private TextMeshProUGUI textoError;
 
-    [Header("Configuración de API")]
-    [SerializeField] private string apiUrl = "https://localhost:7099/api/Jugador/Create";
     private const string ValidarEmail = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9._]+\.[a-zA-Z]{2,}$";
 
     private readonly Color colorNormal = Color.white;
     private readonly Color colorValido = new Color(0.82f, 1f, 0.82f);
     private readonly Color colorError = new Color(1f, 0.82f, 0.82f);
+
+    private bool enviando;
+
     private void Start()
     {
         if (inputUsuario != null)
             inputUsuario.onValueChanged.AddListener(_ => ValidarUsuarioEnVivo());
 
-        if(inputEmail != null)
+        if (inputEmail != null)
             inputEmail.onValueChanged.AddListener(_ => ValidarEmailEnVivo());
 
         if (inputPassword != null)
@@ -37,53 +34,52 @@ public class RegisterManager : MonoBehaviour
 
         if (inputConfirmarPassword != null)
             inputConfirmarPassword.onValueChanged.AddListener(_ => ValidarConfirmarPasswordEnVivo());
-
     }
+
     public void OnClickRegistrarse()
     {
-        string usuario = inputUsuario != null ? inputUsuario.text.Trim(): "";
-        string email = inputEmail != null ? inputEmail.text.Trim(): "";
-        string password = inputPassword != null ? inputPassword.text: "";
-        string confirmar = inputConfirmarPassword != null ? inputConfirmarPassword.text: "";
+        if (enviando) return;
+
+        string usuario = inputUsuario != null ? inputUsuario.text.Trim() : "";
+        string email = inputEmail != null ? inputEmail.text.Trim() : "";
+        string password = inputPassword != null ? inputPassword.text : "";
+        string confirmar = inputConfirmarPassword != null ? inputConfirmarPassword.text : "";
 
         if (!ValidarFormulario(usuario, email, password, confirmar))
             return;
 
-        MostrarError("");
-        StartCoroutine(EnviarRegistroApi(usuario, email, password));
+        enviando = true;
+        MostrarError("Creando cuenta...");
+
+        var cuerpo = new RegistroRequest { nombreUsuario = usuario, email = email, password = password };
+        StartCoroutine(ApiClient.Post<RegistroRequest, JugadorDto>(
+            "api/Jugador", cuerpo, AlRegistrar, AlFallar));
     }
 
-    private IEnumerator EnviarRegistroApi(string usuario, string email, string password)
+    private void AlRegistrar(JugadorDto jugador)
     {
-        // Construccion manual del Json que coincida con el modelo jugador
-        string jsonBody= $"{{\"nombreUsuario\":\"{usuario}\",\"email\":\"{email}\",\"password\":\"{password}\"}}";
-        byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonBody);
+        enviando = false;
+        Debug.Log("Registro correcto -> " + jugador.nombreUsuario + " (id " + jugador.id + ")");
 
-        using (UnityWebRequest request = new UnityWebRequest(apiUrl, "POST"))
+        // Volvemos al login y avisamos que ya puede iniciar sesion
+        var ui = FindFirstObjectByType<UIManager>();
+        var login = FindFirstObjectByType<LoginManager>();
+        if (ui != null) ui.MostrarLogin();
+        if (login != null) login.MostrarMensaje("Cuenta creada. Ya puedes iniciar sesión.", false);
+    }
+
+    private void AlFallar(long codigo, string detalle)
+    {
+        enviando = false;
+        switch (codigo)
         {
-            request.uploadHandler = new UploadHandlerRaw(bodyRaw);
-            request.downloadHandler = new DownloadHandlerBuffer();
-            request.SetRequestHeader("Content-Type", "application/json");
-            request.certificateHandler = new BypassCertificateHandler();
-
-            yield return request.SendWebRequest();
-
-            if (request.result== UnityWebRequest.Result.Success)
-            {
-                Debug.Log("Registro exitoso: " + request.downloadHandler.text);
-                LimpiarCampos();
-            }
-            else if (request.responseCode == 409)
-            {
-                MostrarError("El nombre de usuario o correo ya está registrado.");
-            }
-            else
-            {
-                MostrarError("Error al conectar con el sevidor.");
-                Debug.LogError($"Error {request.responseCode}: {request.error}");
-            }
+            case 409: MostrarError("El nombre de usuario o el correo ya están registrados."); break;
+            case 400: MostrarError("Datos inválidos. Revisa usuario, correo y contraseña."); break;
+            case 0: MostrarError(detalle); break;
+            default: MostrarError("Error del servidor. Inténtalo de nuevo."); break;
         }
     }
+
     private void ValidarUsuarioEnVivo()
     {
         if (inputUsuario == null) return;
@@ -146,9 +142,9 @@ public class RegisterManager : MonoBehaviour
         PintarCampo(inputConfirmarPassword, coincide ? colorValido : colorError);
     }
 
-    private bool ValidarFormulario(string usuario, string email, string password, string confrimar)
+    private bool ValidarFormulario(string usuario, string email, string password, string confirmar)
     {
-        if (string.IsNullOrEmpty(usuario) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(confrimar))
+        if (string.IsNullOrEmpty(usuario) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(confirmar))
         {
             MostrarError("Por favor, completa todos los campos.");
             return false;
@@ -172,13 +168,12 @@ public class RegisterManager : MonoBehaviour
             return false;
         }
 
-        if (password != confrimar)
+        if (password != confirmar)
         {
             MostrarError("Las contraseñas no coinciden.");
             return false;
         }
         return true;
-
     }
 
     private void PintarCampo(TMP_InputField campo, Color color)
@@ -199,6 +194,8 @@ public class RegisterManager : MonoBehaviour
 
     public void LimpiarCampos()
     {
+        enviando = false;
+
         if (inputUsuario != null)
         {
             inputUsuario.text = "";

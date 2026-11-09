@@ -1,62 +1,86 @@
-using System.Collections;
-using System.Text;
-using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Networking;
-using UnityEngine.UI;
+using UnityEngine.Serialization;
+using UnityEngine.SceneManagement;
 
 public class LoginManager : MonoBehaviour
 {
     [Header("Campos de Formulario")]
-    [SerializeField] private TMP_InputField inputEmail;
+    [FormerlySerializedAs("inputEmail")]
+    [SerializeField] private TMP_InputField inputUsuario;
     [SerializeField] private TMP_InputField inputPassword;
 
     [Header("Feedback")]
     [SerializeField] private TextMeshProUGUI textoError;
 
-    [Header("COnfiguracion de API")]
-    [SerializeField] private string apiUrl= "https://localhost:7099/api/Jugador/Login";
+    [Header("Navegacion tras iniciar sesion")]
+    [SerializeField] private string escenaSiguiente = "Juego";
 
-    private const string ValidarEmail = @"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
-
-    private readonly Color colorNormal= Color.white;
-    private readonly Color colorValido= new Color(0.82f, 1f, 0.82f);
+    private readonly Color colorNormal = Color.white;
+    private readonly Color colorValido = new Color(0.82f, 1f, 0.82f);
     private readonly Color colorError = new Color(1f, 0.82f, 0.82f);
 
+    private bool enviando;
     private void Start()
     {
-        if(inputEmail != null)
-            inputEmail.onValueChanged.AddListener(_ => ValidarEmailEnVivo());
+        if (inputUsuario != null)
+            inputUsuario.onValueChanged.AddListener(_ => ValidarUsuarioEnVivo());
 
-        if(inputPassword != null)
+        if (inputPassword != null)
             inputPassword.onValueChanged.AddListener(_ => ValidarPasswordEnVivo());
     }
 
     public void OnClickIniciarSesion()
     {
-        string email = inputEmail != null ? inputEmail.text.Trim(): "";
-        string password = inputPassword != null ? inputPassword.text: "";
+        if (enviando) return;
 
-        if (!ValidarCampos(email, password))
+        string usuario = inputUsuario != null ? inputUsuario.text.Trim() : "";
+        string password = inputPassword != null ? inputPassword.text : "";
+
+        if(!ValidarCampos(usuario, password)) 
             return;
 
-        Debug.Log($"Enviado login -> Email: {email}");
-        MostrarError("");
+        enviando = true;
+        MostrarMensaje("Iniciando sesion...", false);
+
+        var cuerpo= new LoginRequest { nombreUsuario  = usuario, password= password };
+        StartCoroutine(ApiClient.Post<LoginRequest, JugadorDto>(
+            "api/Jugador/login", cuerpo, AlIniciarSesion, AlFallar));
     }
 
-    private void ValidarEmailEnVivo()
+    private void AlIniciarSesion(JugadorDto jugador)
     {
-        if (inputEmail == null) return;
+        enviando = false;
+        SessionManager.IniciarSesion(jugador);
+        Debug.Log("Login correcto -> " + jugador.nombreUsuario + " (id " + jugador.id + ")");
+        MostrarError("");
 
-        string email= inputEmail.text.Trim();
-        if (string.IsNullOrEmpty(email))
+        if (!string.IsNullOrEmpty(escenaSiguiente))
+            SceneManager.LoadScene(escenaSiguiente);
+    }
+
+    private void AlFallar(long codigo, string detalle)
+    {
+        enviando = false;
+        switch (codigo)
         {
-            PintarCampo(inputEmail, colorNormal);
+            case 401: MostrarError("Usuario o contraseña incorrectos."); break;
+            case 0: MostrarError(detalle); break;
+            default: MostrarError("Error del servidor. Inténtalo de nuevo."); break;
+        }
+    }
+
+    private void ValidarUsuarioEnVivo()
+    {
+        if (inputUsuario == null) return;
+
+        string usuario = inputUsuario.text.Trim();
+        if (string.IsNullOrEmpty(usuario))
+        {
+            PintarCampo(inputUsuario, colorNormal);
             return;
         }
-        bool esValido = Regex.IsMatch(email, ValidarEmail);
-        PintarCampo(inputEmail, esValido ? colorValido : colorError);
+        PintarCampo(inputUsuario, usuario.Length <= 50 ? colorValido : colorError);
     }
 
     private void ValidarPasswordEnVivo()
@@ -69,27 +93,20 @@ public class LoginManager : MonoBehaviour
             PintarCampo(inputPassword, colorNormal);
             return;
         }
-        bool esValido = password.Length <= 100;
-        PintarCampo(inputPassword, esValido ? colorValido : colorError);
+        PintarCampo(inputPassword, password.Length <= 100 ? colorValido : colorError);
     }
 
-    private bool ValidarCampos(string email, string password)
+    private bool ValidarCampos(string usuario, string password)
     {
-        if(string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+        if (string.IsNullOrEmpty(usuario) || string.IsNullOrEmpty(password))
         {
             MostrarError("Por favor, completa todos los campos.");
             return false;
         }
 
-        if(!Regex.IsMatch(email, ValidarEmail))
+        if (usuario.Length > 50)
         {
-            MostrarError("El formato del correo no es válido.");
-            return false;
-        }
-
-        if (email.Length > 100)
-        {
-            MostrarError("El correo no puede superar los 100 caracteres.");
+            MostrarError("El nombre de usuario no puede superar los 50 caracteres.");
             return false;
         }
 
@@ -106,26 +123,32 @@ public class LoginManager : MonoBehaviour
         if (campo == null) return;
 
         if (campo.targetGraphic != null)
-        {
             campo.targetGraphic.color= color;
-        }
     }
 
     private void MostrarError(string mensaje)
     {
-        if (textoError != null)
-            textoError.text = mensaje;
+        MostrarMensaje(mensaje, true);
+    }
+
+    public void MostrarMensaje(string mensaje, bool esError)
+    {
+        if (textoError == null) return;
+        textoError.color = esError ? new Color(1f, 0.35f, 0.35f) : new Color(0.55f, 0.9f, 0.55f);
+        textoError.text= mensaje;
     }
 
     public void LimpiarCampos()
     {
-        if (inputEmail != null)
+        enviando = false;
+
+        if (inputUsuario != null)
         {
-            inputEmail.text = "";
-            PintarCampo(inputEmail, colorNormal);
+            inputUsuario.text = "";
+            PintarCampo(inputUsuario, colorNormal);
         }
 
-        if (inputPassword != null)
+        if(inputPassword != null)
         {
             inputPassword.text = "";
             PintarCampo(inputPassword, colorNormal);
