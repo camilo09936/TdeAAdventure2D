@@ -4,9 +4,6 @@ using UnityEngine.SceneManagement;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
-
-// Puntos = metros de altura + monedas/gemas. Al perder, la partida se guarda a nombre del jugador
-// (ver ScoreBoard.cs). El marcador esta en GameManagerHUD.cs y el menu de inicio en MainMenu.cs.
 public partial class GameManager : MonoBehaviour
 {
     public const string EscenaLogin = "Login";
@@ -25,7 +22,6 @@ public partial class GameManager : MonoBehaviour
     public int Score { get { return Mathf.FloorToInt(Height); } }
     public int Level { get { return Difficulty.Level(Height); } }
 
-    // Monedero del jugador actual: para la tienda de skins y objetos
     public static int Wallet { get { return SessionManager.EstaAutenticado ? SessionManager.JugadorActual.monedas : 0; } }
 
     Vector3 startPos, camStartPos;
@@ -65,7 +61,6 @@ public partial class GameManager : MonoBehaviour
         Time.timeScale = 1f;
     }
 
-    // Vuelve al menu: el juego queda en pausa detras
     public void EnterMenu()
     {
         InMenu = true;
@@ -74,7 +69,6 @@ public partial class GameManager : MonoBehaviour
         SetPlayerActive(false);
     }
 
-    // Empieza una partida con el nombre escrito en el menu
     public void StartRun()
     {
         InMenu = false;

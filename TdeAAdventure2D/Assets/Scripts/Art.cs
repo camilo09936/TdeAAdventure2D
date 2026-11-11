@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Dibujos pixel-art generados por codigo: monedas, pinchos y sierra.
 public static class Art
 {
     static Sprite coin, special, saw;
@@ -10,7 +9,7 @@ public static class Art
     static Texture2D NewTex(int w, int h)
     {
         var t = new Texture2D(w, h, TextureFormat.RGBA32, false);
-        t.SetPixels32(new Color32[w * h]); // todo transparente
+        t.SetPixels32(new Color32[w * h]); 
         return t;
     }
 
@@ -54,7 +53,6 @@ public static class Art
         return Finish(t, new Vector2(0.5f, 0.5f));
     }
 
-    // Tira de pinchos: cada diente mide 0.5 unidades. El pivote queda abajo al centro.
     public static Sprite Spikes(int teeth)
     {
         Sprite s;

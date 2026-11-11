@@ -4,7 +4,6 @@ using UnityEngine.Networking;
 
 public static class SkinLoader
 {
-    // Lee el cosmetico equipado del jugador, pide su sprite_path a la API y lo aplica al personaje (RF05)
     public static IEnumerator Aplicar(PlayerVisual visual)
     {
         if (visual == null) yield break;
@@ -12,7 +11,7 @@ public static class SkinLoader
         var eq = SessionManager.EstaAutenticado ? SessionManager.JugadorActual.cosmeticoEquipado : null;
         if (eq == null || string.IsNullOrEmpty(eq.cosmeticoId))
         {
-            visual.ApplySkin(null);          // skin por defecto
+            visual.ApplySkin(null);         
             yield break;
         }
 
@@ -21,7 +20,7 @@ public static class SkinLoader
             "api/Cosmetico/" + UnityWebRequest.EscapeURL(eq.cosmeticoId),
             c => cos = c, (codigo, msg) => { });
 
-        if (visual == null) yield break;     // cambio la escena mientras esperaba
+        if (visual == null) yield break;     
 
         Texture2D hoja = null;
         if (cos != null && !string.IsNullOrEmpty(cos.spritePath))

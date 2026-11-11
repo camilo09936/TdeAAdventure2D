@@ -1,6 +1,5 @@
 using UnityEngine;
 
-// Parte del menu: estilos de botones, campo de texto y etiquetas (colores planos, sin imagenes).
 public partial class MainMenu
 {
     GUIStyle sLabel, sField, sPrimary, sSecondary, sTab, sTabOn, sCellL, sCellR;
@@ -61,7 +60,6 @@ public partial class MainMenu
         sCellR = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleRight, wordWrap = false, clipping = TextClipping.Clip };
     }
 
-    // Texto con sombra; el tamano esta pensado para una pantalla de 720 px de alto
     void Label(Rect r, string text, int size, Color c)
     {
         sLabel.fontSize = Mathf.RoundToInt(size * Screen.height / 720f);

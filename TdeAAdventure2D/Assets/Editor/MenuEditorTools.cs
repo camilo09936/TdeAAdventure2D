@@ -1,8 +1,6 @@
 using UnityEditor;
 using UnityEngine;
 
-// Ajusta solas las imagenes que pongas en Assets/Resources/Menu (logo y fondo):
-// sin compresion, sin redimensionar a potencias de 2 y con filtro suave.
 public class MenuTexturePostprocessor : AssetPostprocessor
 {
     void OnPreprocessTexture()
@@ -10,7 +8,15 @@ public class MenuTexturePostprocessor : AssetPostprocessor
         if (!assetPath.Replace("\\", "/").Contains("/Resources/Menu/")) return;
 
         var ti = (TextureImporter)assetImporter;
-        ti.textureType = TextureImporterType.Default;
+        string fileName = System.IO.Path.GetFileName(assetPath);
+        if (fileName == "fondo_login.jpg" || fileName == "Logo_Login.png")
+        {
+            ti.textureType = TextureImporterType.Sprite;
+        }
+        else
+        {
+            ti.textureType = TextureImporterType.Default;
+        }
         ti.npotScale = TextureImporterNPOTScale.None;
         ti.mipmapEnabled = false;
         ti.filterMode = FilterMode.Bilinear;

@@ -1,8 +1,5 @@
 using UnityEngine;
-/// <summary>
-/// Guarda el jugador autenticado. Es estatico, asi que no se afecta al cambio de escena.
-/// Las demas pantallas (partida, tienda, ranking) leen el id de aqui.
-/// </summary>
+
 public class SessionManager
 {
     public static JugadorDto JugadorActual { get; private set; }

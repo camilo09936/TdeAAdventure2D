@@ -91,5 +91,4 @@ public class EquiparRequest
     public string cosmeticoId;
 }
 
-/// <summary>Para endpoints cuya respuesta no nos interesa o viene vacia.</summary>
 public class Vacio { }

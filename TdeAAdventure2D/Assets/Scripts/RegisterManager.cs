@@ -49,7 +49,7 @@ public class RegisterManager : MonoBehaviour
             return;
 
         enviando = true;
-        MostrarError("Creando cuenta...");
+        MostrarMensaje("Creando cuenta...", false);
 
         var cuerpo = new RegistroRequest { nombreUsuario = usuario, email = email, password = password };
         StartCoroutine(ApiClient.Post<RegistroRequest, JugadorDto>(
@@ -181,15 +181,19 @@ public class RegisterManager : MonoBehaviour
         if (campo == null) return;
 
         if (campo.targetGraphic != null)
-        {
             campo.targetGraphic.color = color;
-        }
     }
 
     private void MostrarError(string mensaje)
     {
-        if (textoError != null)
-            textoError.text = mensaje;
+        MostrarMensaje(mensaje, true);
+    }
+
+    public void MostrarMensaje(string mensaje, bool esError)
+    {
+        if (textoError == null) return;
+        textoError.color = esError ? new Color(1f, 0.35f, 0.35f) : new Color(0.55f, 0.9f, 0.55f);
+        textoError.text = mensaje;
     }
 
     public void LimpiarCampos()

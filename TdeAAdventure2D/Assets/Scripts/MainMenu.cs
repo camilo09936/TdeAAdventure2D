@@ -1,8 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// Menu de inicio: logo, fondo, datos del jugador logueado, ranking y tienda.
-// Partes: MainMenu.cs (inicio), MainMenuRanking.cs, MainMenuShop.cs, MainMenuStyles.cs (estilos).
 public partial class MainMenu : MonoBehaviour
 {
     enum Page { Home, Ranking, Shop }
@@ -35,9 +33,10 @@ public partial class MainMenu : MonoBehaviour
 
     void Awake()
     {
-        bg = FindImage("fondo", "tienda");
+        bg = Resources.Load<Texture2D>("Menu/menu_fondo");
         logo = FindImage("logo");
-        bgTienda = FindImage("tienda");
+        bgTienda = Resources.Load<Texture2D>("Menu/fondo_tienda");
+
         if (bg != null) bg.wrapMode = TextureWrapMode.Clamp;
         if (logo != null) logo.wrapMode = TextureWrapMode.Clamp;
         if (bgTienda != null) bgTienda.wrapMode= TextureWrapMode.Clamp;
