@@ -3,8 +3,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 #endif
 
-// Movimiento del personaje: A / D para moverse, Espacio para saltar.
-// La animacion esta en PlayerVisual.cs.
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(BoxCollider2D))]
 [RequireComponent(typeof(SpriteRenderer))]
@@ -15,24 +13,25 @@ public class PlayerController : MonoBehaviour
     public float jumpForce = 13f;
 
     [Header("Sensacion de control")]
-    public float coyoteTime = 0.1f;       // se puede saltar un instante despues de salir de una plataforma
-    public float jumpBufferTime = 0.12f;  // se recuerda el salto si se presiona justo antes de tocar el suelo
+    public float coyoteTime = 0.1f;       
+    public float jumpBufferTime = 0.12f;  
 
     [Header("Dibujo")]
-    public Sprite[] frames;               // cuadros del personaje (0 = quieto, 5 = en el aire)
+    public Sprite[] frames;             
 
     public event System.Action Jumped;
-    public event System.Action<float> Landed;   // velocidad de impacto
+    public event System.Action<float> Landed;  
 
-    public float Facing { get; private set; }      // 1 = derecha, -1 = izquierda
-    public float RelativeVx { get; private set; }  // velocidad propia (sin contar la plataforma)
+    public float Facing { get; private set; }     
+    public float RelativeVx { get; private set; }  
     public bool Grounded { get { return grounded; } }
     public Vector2 Velocity { get { return RbCompat.GetVel(rb); } }
 
     Rigidbody2D rb;
     bool grounded, wasGrounded, jumpHeld, jumping;
     float moveInput, coyote, jumpBuffer, airTime, fallSpeed;
-    Vector2 groundVel;                    // velocidad de la plataforma sobre la que estamos
+    Vector2 groundVel;
+    float pushTimer;
 
     void Awake()
     {
@@ -40,7 +39,6 @@ public class PlayerController : MonoBehaviour
         rb.freezeRotation = true;
         Facing = 1f;
 
-        // El dibujo ya queda centrado, asi que el cuerpo fisico tambien
         transform.localScale = Vector3.one;
         var col = GetComponent<BoxCollider2D>();
         Vector2 o = col.offset;
@@ -69,13 +67,11 @@ public class PlayerController : MonoBehaviour
         jumpHeld = Input.GetKey(KeyCode.Space);
 #endif
 
-        // A = izquierda, D = derecha
         moveInput = 0f;
         if (left) moveInput -= 1f;
         if (right) moveInput += 1f;
         if (moveInput != 0f) Facing = moveInput > 0f ? 1f : -1f;
 
-        // Espacio = saltar (con un poco de margen antes y despues de tocar la plataforma)
         if (jumpDown) jumpBuffer = jumpBufferTime;
         else jumpBuffer -= Time.deltaTime;
 
@@ -83,7 +79,6 @@ public class PlayerController : MonoBehaviour
         if (grounded && v.y <= 0.5f) coyote = coyoteTime;
         else coyote -= Time.deltaTime;
 
-        // Aterrizaje: avisa con la velocidad con la que cayo
         if (grounded)
         {
             if (!wasGrounded && airTime > 0.1f && Landed != null) Landed(-fallSpeed);
@@ -103,7 +98,6 @@ public class PlayerController : MonoBehaviour
         Vector2 v = RbCompat.GetVel(rb);
         float dt = Time.fixedDeltaTime;
 
-        // Acelera y frena de forma suave. Sobre una plataforma movil se mide respecto a ella.
         float carry = grounded ? groundVel.x : 0f;
         float rel = v.x - carry;
         float target = moveInput * speed;
@@ -111,11 +105,11 @@ public class PlayerController : MonoBehaviour
         if (moveInput == 0f) rate = grounded ? 70f : 20f;
         else if (Mathf.Abs(rel) > 0.1f && Mathf.Sign(rel) != Mathf.Sign(target)) rate = grounded ? 95f : 45f;
         else rate = grounded ? 60f : 38f;
-        rel = Mathf.MoveTowards(rel, target, rate * dt);
+        if (pushTimer > 0f) pushTimer -= dt;
+        else rel = Mathf.MoveTowards(rel, target, rate * dt);
         v.x = rel + carry;
         RelativeVx = rel;
 
-        // Salto corto si se suelta la tecla mientras sube
         if (jumping && v.y > 0f && !jumpHeld)
         {
             v.y *= 0.5f;
@@ -133,8 +127,15 @@ public class PlayerController : MonoBehaviour
         }
 
         RbCompat.SetVel(rb, v);
-        grounded = false;            // se vuelve a marcar en OnCollisionStay2D
+        grounded = false;            
         groundVel = Vector2.zero;
+    }
+
+    public void Push(float dirX, float speedX)
+    {
+        pushTimer = 0.3f;
+        Vector2 v = RbCompat.GetVel(rb);
+        RbCompat.SetVel(rb, new Vector2(dirX * speedX, Mathf.Max(v.y, 4f)));
     }
 
     void OnCollisionStay2D(Collision2D collision)

@@ -1,9 +1,7 @@
 using UnityEngine;
 
-// Segunda parte de PlayerVisual: el movimiento de cada pieza en cada cuadro.
 public partial class PlayerVisual
 {
-    // Se agrega solo al personaje al empezar el juego (no hay que arrastrarlo a mano)
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void AutoAttach()
     {
@@ -32,7 +30,6 @@ public partial class PlayerVisual
         bool air = airTimer > 0.07f;
         if (air != inAir) { inAir = air; SetPose(air); }
 
-        // Giro: el dibujo se voltea rapido (pasa por una rendija) y la cabeza se sacude un poco
         float facing = pc.Facing;
         if (facing != lastFacing)
         {
@@ -47,7 +44,6 @@ public partial class PlayerVisual
         turn = Mathf.MoveTowards(turn, facing, dt * 16f);
         float fs = turn >= 0f ? 1f : -1f;
 
-        // Caminata: las piernas se balancean segun la velocidad
         float targetAmp = (grounded && speedFrac > 0.08f) ? 1f : 0f;
         legAmp = Mathf.MoveTowards(legAmp, targetAmp, dt * 6f);
         if (legAmp > 0.01f) phase += dt * (6f + 12f * speedFrac);
@@ -60,7 +56,6 @@ public partial class PlayerVisual
         legB.localPosition = new Vector3(legBX, hipY + Mathf.Max(0f, -Mathf.Cos(phase)) * 0.05f * legAmp, 0f);
         torso.localRotation = Quaternion.Euler(0f, 0f, -s * 2.5f * legAmp);
 
-        // Cabeza: rebota con retraso y respira cuando esta quieto
         float breath = Mathf.Sin(Time.time * 2.6f) * 0.012f * (1f - speedFrac);
         float headYTarget = -Mathf.Abs(Mathf.Sin(phase + 0.6f)) * 0.025f * legAmp + breath;
         headY = Spring(headY, ref headYVel, headYTarget, 300f, 16f, dt);
@@ -68,13 +63,11 @@ public partial class PlayerVisual
         headAng = Spring(headAng, ref headAngVel, -vxn * 6f, 180f, 11f, dt);
         head.localRotation = Quaternion.Euler(0f, 0f, headAng * fs);
 
-        // Inclinacion del cuerpo hacia donde corre; en el aire, la nariz sube o baja con la velocidad vertical
         float leanTarget = -vxn * 7f;
         lean = Mathf.Lerp(lean, leanTarget, 1f - Mathf.Exp(-14f * dt));
         float airTilt = air ? Mathf.Clamp(v.y * 0.5f, -9f, 9f) * facing : 0f;
         visual.localRotation = Quaternion.Euler(0f, 0f, lean + airTilt);
 
-        // Estirar y aplastar: en el aire se alarga con la velocidad, en el suelo vuelve a su forma
         float tx = 1f, ty = 1f;
         if (air)
         {
@@ -89,7 +82,6 @@ public partial class PlayerVisual
         visual.localPosition = new Vector3(0f, bob, 0f);
         visual.localScale = new Vector3(turn * sqX, sqY, 1f);
 
-        // Polvo al correr
         if (grounded && speedFrac > 0.75f)
         {
             dustTimer -= dt;

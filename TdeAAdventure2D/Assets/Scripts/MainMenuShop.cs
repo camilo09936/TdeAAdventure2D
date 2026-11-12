@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
-// Tienda y personalizacion: comprar (RF04), equipar y quitar skins (RF05).
-// Vista en cuadricula (3 o 4 columnas) con filtro por tipo.
 public partial class MainMenu
 {
     List<CosmeticoDto> catalogo = new List<CosmeticoDto>();
@@ -40,7 +38,6 @@ public partial class MainMenu
         return gm != null && gm.player != null ? gm.player.GetComponent<PlayerVisual>() : null;
     }
 
-    // Primer cuadro de la hoja de la skin, para mostrarlo en la tarjeta
     Texture2D Preview(CosmeticoDto c)
     {
         if (string.IsNullOrEmpty(c.spritePath)) return null;
@@ -80,7 +77,6 @@ public partial class MainMenu
         Label(new Rect(px, py + 10f * s, pw, 52f * s), "TIENDA", 44, Color.white);
         Label(new Rect(px, py + 62f * s, pw, 30f * s), "Monedas: " + j.monedas, 24, Gold);
 
-        // Filtros por tipo (Todos, skin, accesorio...)
         List<string> tipos = new List<string> { "Todos" };
         foreach (CosmeticoDto c in catalogo)
             if (!string.IsNullOrEmpty(c.tipo) && !tipos.Contains(c.tipo)) tipos.Add(c.tipo);
@@ -147,7 +143,6 @@ public partial class MainMenu
                     GUI.color = Color.white;
                 }
 
-                // Vista previa (primer cuadro de la hoja)
                 float ps = cardH * 0.46f;
                 Rect pr = new Rect(x + (cardW - ps) * 0.5f, y + 8f * s, ps, ps);
                 Texture2D tex = Preview(c);
@@ -181,7 +176,6 @@ public partial class MainMenu
             page = Page.Home;
     }
 
-    // RF04: la API valida Monedas >= Precio, descuenta y agrega el cosmetico a los desbloqueados
     void Comprar(JugadorDto j, CosmeticoDto c)
     {
         tiendaOcupada = true;
@@ -202,7 +196,6 @@ public partial class MainMenu
             }));
     }
 
-    // RF05: la API valida que este desbloqueado y guarda el cosmetico equipado
     void Equipar(JugadorDto j, CosmeticoDto c)
     {
         tiendaOcupada = true;

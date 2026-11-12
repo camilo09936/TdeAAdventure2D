@@ -2,7 +2,6 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-// Texturas generadas por codigo: la plataforma y el patron de ladrillos.
 public static partial class BuildGame
 {
     static Sprite BuildPlatformSprite()
@@ -19,7 +18,7 @@ public static partial class BuildGame
                 else if (y == 1) c = new Color32(186, 191, 200, 255);
                 else if (y == 0) c = new Color32(140, 146, 158, 255);
                 if (x == 0 || x == 15) c = Shade(c, -35);
-                if ((x == 1 || x == 14) && y == 4) c = new Color32(150, 156, 168, 255); // remaches
+                if ((x == 1 || x == 14) && y == 4) c = new Color32(150, 156, 168, 255); 
                 tex.SetPixel(x, y, c);
             }
         }
@@ -42,7 +41,7 @@ public static partial class BuildGame
 
     static Sprite BuildBrickTile()
     {
-        const int tw = 128, th = 112, bh = 28, bw = 64; // 4 filas de ladrillos de 64x28
+        const int tw = 128, th = 112, bh = 28, bw = 64;
         string path = SpritesDir + "/ladrillos.png";
 
         var mortar = new Color32(117, 98, 71, 255);
@@ -74,9 +73,9 @@ public static partial class BuildGame
                 else
                 {
                     c = tones[(row * 5 + bi * 3 + row * bi) & 3];
-                    if (ry >= bh - 3) c = Shade(c, 12);      // borde superior claro
-                    else if (ry < 6) c = Shade(c, -10);      // sombra abajo
-                    int n = (x * 37 + y * 101 + x * y) % 100; // motas
+                    if (ry >= bh - 3) c = Shade(c, 12);   
+                    else if (ry < 6) c = Shade(c, -10);      
+                    int n = (x * 37 + y * 101 + x * y) % 100;
                     if (n < 6) c = Shade(c, -14);
                     else if (n > 94) c = Shade(c, 9);
                 }
@@ -91,7 +90,7 @@ public static partial class BuildGame
         var imp = (TextureImporter)AssetImporter.GetAtPath(path);
         imp.textureType = TextureImporterType.Sprite;
         imp.spriteImportMode = SpriteImportMode.Single;
-        imp.spritePixelsPerUnit = BgCropH / BgHeightUnits; // misma escala que el fondo original
+        imp.spritePixelsPerUnit = BgCropH / BgHeightUnits; 
         imp.filterMode = FilterMode.Point;
         imp.wrapMode = TextureWrapMode.Repeat;
         imp.textureCompression = TextureImporterCompression.Uncompressed;

@@ -7,15 +7,13 @@ public static partial class BuildGame
 {
     static void BuildScene(Sprite[] frames, Sprite bg, Sprite platform, Sprite brick)
     {
-        float bgW = BgCropW / (BgCropH / BgHeightUnits);                       // ancho del fondo en unidades
-        float groundTop = BgHeightUnits / 2f - BgHeightUnits * GroundFraction; // altura del suelo
+        float bgW = BgCropW / (BgCropH / BgHeightUnits);                     
+        float groundTop = BgHeightUnits / 2f - BgHeightUnits * GroundFraction; 
         PhysicsMaterial2D noFriction = FrictionlessMaterial();
 
-        // Los pilares del primer intento ya no se usan
         var oldObstacles = GameObject.Find("Obstaculos");
         if (oldObstacles != null) Object.DestroyImmediate(oldObstacles);
 
-        // Camara
         GameObject camGo = Camera.main != null ? Camera.main.gameObject : GameObject.Find("Main Camera");
         var cam = camGo.GetComponent<Camera>();
         cam.orthographic = true;
@@ -26,7 +24,6 @@ public static partial class BuildGame
         fit.maxSize = 5f;
         var follow = Ensure<CameraFollow>(camGo);
 
-        // Pantalla inicial: la imagen original del fondo
         GameObject bgGo = GetOrCreate("Background");
         bgGo.transform.position = new Vector3(0f, 0f, 5f);
         bgGo.transform.localScale = Vector3.one;
@@ -34,7 +31,6 @@ public static partial class BuildGame
         bgSr.sprite = bg;
         bgSr.sortingOrder = -10;
 
-        // Muro de ladrillos que se repite hacia arriba
         GameObject brickGo = GetOrCreate("FondoLadrillos");
         brickGo.transform.position = new Vector3(0f, 0f, 6f);
         brickGo.transform.localScale = Vector3.one;
@@ -48,7 +44,6 @@ public static partial class BuildGame
         inf.width = bgW + 4f;
         inf.height = 16f;
 
-        // Suelo
         GameObject ground = GetOrCreate("Ground");
         ground.transform.position = new Vector3(0f, groundTop - 3f, 0f);
         ground.transform.localScale = Vector3.one;
@@ -56,7 +51,6 @@ public static partial class BuildGame
         gc.size = new Vector2(40f, 6f);
         gc.offset = Vector2.zero;
 
-        // Personaje
         GameObject player = GetOrCreate("Player");
         player.transform.position = new Vector3(-7f, groundTop + 0.3f, 0f);
         player.transform.localScale = Vector3.one;
@@ -80,7 +74,6 @@ public static partial class BuildGame
 
         follow.target = player.transform;
 
-        // Paredes invisibles a los lados (suben junto con el personaje)
         foreach (int side in new[] { -1, 1 })
         {
             GameObject wall = GetOrCreate(side < 0 ? "Pared_Izq" : "Pared_Der");
@@ -92,7 +85,6 @@ public static partial class BuildGame
             fy.target = player.transform;
         }
 
-        // Generador de plataformas y control del juego
         GameObject mgr = GetOrCreate("GameManager");
         var gen = Ensure<LevelGenerator>(mgr);
         gen.player = player.transform;

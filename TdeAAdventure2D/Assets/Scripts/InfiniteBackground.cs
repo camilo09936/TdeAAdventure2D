@@ -1,7 +1,5 @@
 using UnityEngine;
 
-// Fondo de ladrillos que se repite hacia arriba sin fin.
-// Se mueve siempre en multiplos exactos del alto del patron, asi no se nota el salto.
 [RequireComponent(typeof(SpriteRenderer))]
 public class InfiniteBackground : MonoBehaviour
 {

@@ -1,6 +1,5 @@
 using UnityEngine;
 
-// Ajusta la camara para que el fondo siempre cubra la pantalla.
 [RequireComponent(typeof(Camera))]
 public class CameraFit : MonoBehaviour
 {

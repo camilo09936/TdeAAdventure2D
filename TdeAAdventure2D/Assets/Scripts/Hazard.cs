@@ -1,9 +1,8 @@
 using UnityEngine;
 
-// Trampa: si el personaje la toca, pierde. Pinchos (sobre plataformas) y sierras (giran alrededor de una gema).
 public class Hazard : MonoBehaviour
 {
-    public string reason = "Pinchos";
+    public string reason = "Reprobaste un parcial";
     public bool orbit;
     public Vector3 center;
     public float radius = 1.5f;
@@ -12,12 +11,12 @@ public class Hazard : MonoBehaviour
 
     public static void Spikes(Transform parent, float localX, float width)
     {
-        var go = new GameObject("Pinchos");
+        var go = new GameObject("Parciales");
         go.transform.SetParent(parent, false);
         go.transform.localPosition = new Vector3(localX, 0.5f, 0f);
 
         var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite = GameSprites.Tooth;
+        sr.sprite = GameSprites.Paper;
         sr.drawMode = SpriteDrawMode.Tiled;
         sr.tileMode = SpriteTileMode.Continuous;
         sr.size = new Vector2(width, 0.5f);
@@ -29,16 +28,16 @@ public class Hazard : MonoBehaviour
         bc.offset = new Vector2(0f, -0.04f);
 
         var h = go.AddComponent<Hazard>();
-        h.reason = "Pinchos";
+        h.reason = "Reprobaste un parcial";
     }
 
     public static Hazard Saw(Vector3 center, float radius, float speed)
     {
-        var go = new GameObject("Sierra");
+        var go = new GameObject("Lapiz");
         go.transform.position = center + new Vector3(radius, 0f, 0f);
 
         var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite = GameSprites.Saw;
+        sr.sprite = GameSprites.Pencil;
         sr.sortingOrder = 4;
 
         var cc = go.AddComponent<CircleCollider2D>();
@@ -49,7 +48,7 @@ public class Hazard : MonoBehaviour
         rb.bodyType = RigidbodyType2D.Kinematic;
 
         var h = go.AddComponent<Hazard>();
-        h.reason = "Sierra";
+        h.reason = "Te pincho el lapiz del profe";
         h.orbit = true;
         h.center = center;
         h.radius = radius;

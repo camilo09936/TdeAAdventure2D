@@ -1,18 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Ambiente segun la altura:
-//   Nivel 2 (50 m)   -> los ladrillos se vuelven cielo azul y aparecen nubes que flotan.
-//   Nivel 3 (100 m)  -> empieza a anochecer: azul -> atardecer -> noche con estrellas y luna.
-// Cambia los numeros de abajo para mover estos momentos.
 public class SkyAmbience : MonoBehaviour
 {
-    public float cloudStart = 50f;    // empieza el cielo y las nubes (nivel 2)
-    public float cloudFull = 75f;     // cielo completo
-    public float nightStart = 100f;   // empieza a anochecer (nivel 3)
-    public float nightFull = 220f;    // noche completa
+    public float cloudStart = 50f;    
+    public float cloudFull = 75f;  
+    public float nightStart = 100f;  
+    public float nightFull = 220f;    
 
-    // Orden de dibujo: el fondo de ladrillos es -20/-10, plataformas y personaje van arriba
     public int skyOrder = -9;
     public int cloudOrder = -8;
 
@@ -35,9 +30,9 @@ public class SkyAmbience : MonoBehaviour
     SpriteRenderer sky, moon;
     readonly List<Item> clouds = new List<Item>();
     readonly List<Item> stars = new List<Item>();
+    public static float NightAmount;
     float dayT, nightT;
 
-    // Se agrega solo al GameManager al empezar (no hay que arrastrarlo a mano)
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void AutoAttach()
     {
@@ -64,7 +59,6 @@ public class SkyAmbience : MonoBehaviour
 
         var root = new GameObject("Cielo").transform;
 
-        // Cielo y estrellas viajan pegados a la camara
         sky = NewSprite("CieloFondo", SkyArt.Gradient(), cam.transform, skyOrder);
         sky.transform.localPosition = new Vector3(0f, 0f, 10f);
 
@@ -98,8 +92,8 @@ public class SkyAmbience : MonoBehaviour
             it.t = it.sr.transform;
             it.u = (float)rnd.NextDouble();
             it.v = (float)rnd.NextDouble();
-            it.par = 0.15f + (float)rnd.NextDouble() * 0.4f;      // las lejanas se mueven menos
-            it.speed = 0.4f + it.par * 1.2f;                       // y van mas despacio de lado
+            it.par = 0.15f + (float)rnd.NextDouble() * 0.4f;      
+            it.speed = 0.4f + it.par * 1.2f;                       
             it.baseA = 0.85f + it.par * 0.3f;
             float sc = 1.1f + it.par * 2f;
             it.t.localScale = new Vector3(sc, sc, 1f);
@@ -113,8 +107,7 @@ public class SkyAmbience : MonoBehaviour
         return Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(a, b, h));
     }
 
-    // dia -> atardecer -> noche
-    static Color ThreeStage(Color day, Color dusk, Color night, float t)
+    public static Color ThreeStage(Color day, Color dusk, Color night, float t)
     {
         return t < 0.5f ? Color.Lerp(day, dusk, t * 2f) : Color.Lerp(dusk, night, (t - 0.5f) * 2f);
     }
@@ -126,6 +119,7 @@ public class SkyAmbience : MonoBehaviour
         float rate = Time.unscaledDeltaTime * 0.8f;
         dayT = Mathf.MoveTowards(dayT, Ramp(h, cloudStart, cloudFull), rate);
         nightT = Mathf.MoveTowards(nightT, Mathf.Clamp01(Mathf.InverseLerp(nightStart, nightFull, h)), rate);
+        NightAmount = nightT;
     }
 
     void LateUpdate()
@@ -134,13 +128,11 @@ public class SkyAmbience : MonoBehaviour
         float viewH = 2f * cam.orthographicSize;
         float viewW = viewH * cam.aspect;
 
-        // Cielo: cubre toda la pantalla; azul de dia, atardecer, y azul muy oscuro de noche
         sky.transform.localScale = new Vector3(viewW * 1.3f / 0.03125f, viewH * 1.3f, 1f);
         Color c = ThreeStage(DaySky, DuskSky, NightSky, nightT);
         c.a = Mathf.Lerp(0.88f, 0.95f, nightT) * dayT;
         sky.color = c;
 
-        // Nubes: flotan de lado y suben con parallax
         float spanX = viewW + 10f, spanY = viewH + 6f;
         Vector3 cp = cam.transform.position;
         Color cc = ThreeStage(DayCloud, DuskCloud, NightCloud, nightT);
@@ -155,7 +147,6 @@ public class SkyAmbience : MonoBehaviour
             it.sr.color = cc;
         }
 
-        // Estrellas y luna: salen cuando ya esta bastante oscuro
         float starT = Mathf.Clamp01((nightT - 0.4f) * 2f);
         float tw = Time.unscaledTime;
         foreach (Item it in stars)

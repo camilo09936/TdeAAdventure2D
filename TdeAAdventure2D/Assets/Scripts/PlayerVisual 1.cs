@@ -1,12 +1,8 @@
 using UnityEngine;
 
-// Animacion del personaje. Parte el dibujo en cabeza, torso y dos piernas y las mueve por codigo.
-// La animacion en si esta en PlayerVisualAnim.cs (misma clase).
 [RequireComponent(typeof(PlayerController))]
 public partial class PlayerVisual : MonoBehaviour
 {
-    // Cuadro de 32x32 px, filas contadas desde arriba: cabeza 0-17, torso 18-25, piernas 26-31.
-    // El centro horizontal del dibujo esta en x = 13.5; las piernas en x = 12.5 y 18.5.
     const float ArtX = 13.5f;
     const int LegH = 6, TorsoH = 8, HeadH = 18;
 
@@ -32,7 +28,7 @@ public partial class PlayerVisual : MonoBehaviour
     {
         ok = false;
         if (pc.frames == null || pc.frames.Length < 6 || pc.frames[0] == null || pc.frames[5] == null)
-            return; // sin cuadros: se queda el dibujo normal
+            return; 
 
         Sprite idle = pc.frames[0];
         unit = 1f / idle.pixelsPerUnit;
@@ -90,7 +86,6 @@ public partial class PlayerVisual : MonoBehaviour
         pc.Landed -= OnLanded;
     }
 
-    // Recorta una pieza del cuadro. (px, py) es el punto de giro dentro de la pieza, en pixeles.
     static Sprite Cut(Sprite frame, int x, int y, int w, int h, float px, float py)
     {
         Rect fr = frame.rect;
@@ -110,7 +105,6 @@ public partial class PlayerVisual : MonoBehaviour
         return sr;
     }
 
-    // Resorte con rebote: se acerca al objetivo y se pasa un poquito antes de asentarse
     static float Spring(float cur, ref float vel, float target, float k, float damp, float dt)
     {
         vel += (target - cur) * k * dt;
@@ -140,7 +134,6 @@ public partial class PlayerVisual : MonoBehaviour
 
     void OnJumped()
     {
-        // estirarse al despegar
         sqX = 0.8f; sqY = 1.28f; sqVx = 0f; sqVy = 0f;
         headY = -0.06f; headYVel = 0f;
         Puffs(3, 1.4f, 0.5f);
@@ -150,7 +143,7 @@ public partial class PlayerVisual : MonoBehaviour
     {
         float k = Mathf.Clamp01((impact - 2f) / 16f);
         if (k <= 0f) return;
-        // aplastarse al caer, la cabeza se hunde un poco
+
         sqX = 1f + 0.4f * k; sqY = 1f - 0.35f * k; sqVx = 0f; sqVy = 0f;
         headY = -0.1f * k; headYVel = 0f;
         if (impact > 4f) Puffs(2 + Mathf.RoundToInt(4f * k), 2f, 0.6f);

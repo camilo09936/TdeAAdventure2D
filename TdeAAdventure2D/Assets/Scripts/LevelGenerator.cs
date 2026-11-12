@@ -1,22 +1,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Crea plataformas hacia arriba sin fin. Mientras mas alto, mas dificil.
-// Las monedas y trampas estan en LevelGeneratorItems.cs (misma clase).
 public partial class LevelGenerator : MonoBehaviour
 {
     public Transform player;
     public Sprite platformSprite;
-    public float halfWidth = 7f;        // limite horizontal del centro de las plataformas
-    public float startY = 0.95f;        // altura de la primera plataforma (alcanzable desde el suelo)
-    public float heightOrigin = -0.76f; // altura donde empieza el personaje (0 metros)
-    public float generateAhead = 16f;   // cuanto crear por encima del jugador
-    public float cleanupBelow = 14f;    // cuanto conservar por debajo del jugador
+    public float halfWidth = 7f;      
+    public float startY = 0.95f;       
+    public float heightOrigin = -0.76f; 
+    public float generateAhead = 16f; 
+    public float cleanupBelow = 14f;   
 
     [Header("Pisos de la Universidad")]
     public float floorEvery = 50f;
-    GameObject floorTemplate;
-    float refTop, nextFloorH;
+    public float floorApproach = 2.1f;  
+    float nextFloorH;
+    float highestY;                  
 
     readonly List<GameObject> tracked = new List<GameObject>();
     Transform holder;
@@ -26,10 +25,8 @@ public partial class LevelGenerator : MonoBehaviour
     void Awake()
     {
         holder = new GameObject("Plataformas").transform;
-        floorTemplate = GameObject.Find("Background");
-        GameObject ground = GameObject.Find("Ground");
-        Collider2D gc = ground != null ? ground.GetComponent<Collider2D>() : null;
-        refTop = gc != null ? gc.bounds.max.y : -1.06f;
+        var sh = gameObject.AddComponent<SkyHazards>();
+        sh.player= player;
         ResetLevel();
     }
 
@@ -39,10 +36,10 @@ public partial class LevelGenerator : MonoBehaviour
             if (g != null) Destroy(g);
         tracked.Clear();
 
-        // La primera plataforma es fija y queda lejos de donde aparece el personaje
         lastX = -3.5f;
         lastType = PlatformType.Static;
         nextY = Mathf.Max(startY, 0.95f);
+        highestY = nextY;
         Spawn(PlatformType.Static, lastX, nextY, 3f, 0f, 0f, 0.5f);
         nextFloorH = floorEvery;
     }
@@ -71,20 +68,21 @@ public partial class LevelGenerator : MonoBehaviour
         float h = Mathf.Max(0f, nextY - heightOrigin);
         float d = Difficulty.At(h);
 
-        // Separacion vertical: crece con la dificultad (el salto llega a unos 2.8)
         float gap = Random.Range(Mathf.Lerp(1.5f, 1.8f, d), Mathf.Lerp(1.9f, 2.35f, d));
         nextY += gap;
 
         if (floorEvery > 0f && nextY >= heightOrigin + nextFloorH - 1f)
         {
-            SpawnFloor(nextY);
-            nextY -= 0.25f;
+
+            float floorTop = Mathf.Max(nextY, highestY + floorApproach);
+            SpawnFloor(floorTop);
+            highestY = floorTop;
+            nextY = floorTop;              
             lastType = PlatformType.Static;
             nextFloorH += floorEvery;
             return;
         }
 
-        // Mas plataformas moviles y que se caen mientras mas alto
         float movingChance = Mathf.Lerp(0.12f, 0.45f, d);
         float fallingChance = Mathf.Lerp(0.06f, 0.30f, d);
         float r = Random.value;
@@ -105,7 +103,6 @@ public partial class LevelGenerator : MonoBehaviour
             if (amp < 0.8f) { type = PlatformType.Static; amp = 0f; speed = 0f; }
         }
 
-        // Pinchos desde los 20 m: la plataforma se hace mas ancha para dejar espacio seguro
         bool spikes = type != PlatformType.Falling && h > 20f && Random.value < Mathf.Lerp(0.10f, 0.45f, d);
         if (spikes) width = Mathf.Max(width, 3.2f);
 
@@ -119,11 +116,16 @@ public partial class LevelGenerator : MonoBehaviour
         lastX = x;
         lastType = type;
 
-        // A veces una segunda plataforma fija en la misma fila, para dar opciones
         if (Random.value < Mathf.Lerp(0.30f, 0.10f, d))
         {
-            float x2 = x > 0f ? Random.Range(-halfWidth, -2f) : Random.Range(2f, halfWidth);
-            Spawn(PlatformType.Static, x2, nextY + Random.Range(-0.2f, 0.2f), width, 0f, 0f, 0.5f);
+            float minDist = width + amp + 0.8f;  
+            for (int i = 0; i < 8; i++)
+            {
+                float x2 = Random.Range(-halfWidth, halfWidth);
+                if (Mathf.Abs(x2 - x) < minDist) continue;
+                Spawn(PlatformType.Static, x2, nextY + Random.Range(-0.15f, 0.15f), width, 0f, 0f, 0.5f);
+                break;
+            }
         }
     }
 
@@ -135,6 +137,7 @@ public partial class LevelGenerator : MonoBehaviour
         var p = go.AddComponent<Platform>();
         p.Setup(platformSprite, type, width, amp, speed, fallDelay);
         tracked.Add(go);
+        if (y > highestY) highestY = y;
         return p;
     }
 
@@ -158,16 +161,18 @@ public partial class LevelGenerator : MonoBehaviour
         var bc = go.AddComponent<BoxCollider2D>();
         bc.size = new Vector2(18f, 0.5f);
         bc.usedByEffector = true;
-        tracked.Add(go);
 
-        if (floorTemplate != null)
-        {
-            var copy = Instantiate(floorTemplate,
-                new Vector3(0f, top - refTop, floorTemplate.transform.position.z), Quaternion.identity);
-            copy.name = "PisoFondo";
-            var wall = copy.GetComponent<SpriteRenderer>();
-            if (wall != null) wall.sortingOrder = -7;   // por encima del cielo del nivel 2
-            tracked.Add(copy);
-        }
+        var art = new GameObject("PisoArte");
+        art.transform.SetParent(go.transform, false);
+        art.transform.localPosition = new Vector3(0f, -0.25f, 0f); 
+        var sr = art.AddComponent<SpriteRenderer>();
+        sr.sprite = GameSprites.Floor;
+        sr.drawMode = SpriteDrawMode.Tiled;
+        sr.tileMode = SpriteTileMode.Continuous;
+        sr.size = new Vector2(18.4f, 1f);
+        sr.sortingOrder = -7;
+        art.AddComponent<FloorTint>();
+
+        tracked.Add(go);
     }
 }

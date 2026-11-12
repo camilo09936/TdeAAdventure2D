@@ -1,8 +1,5 @@
 using UnityEngine;
 
-// La camara sigue al personaje hacia arriba y ademas sube sola (RF06):
-// VelocidadActual = velocidadInicial + (tiempo transcurrido x factorAceleracion).
-// Si el personaje queda por debajo del limite inferior de la camara, pierde (ver GameManager).
 public class CameraFollow : MonoBehaviour
 {
     public Transform target;
@@ -10,9 +7,9 @@ public class CameraFollow : MonoBehaviour
     public float smooth = 5f;
 
     [Header("Pantalla que sube sola (RF06)")]
-    public float velocidadInicial = 0.25f;     // unidades por segundo al empezar
-    public float factorAceleracion = 0.02f;    // cuanto aumenta la velocidad cada segundo
-    public float velocidadMaxima = 50f;        // tope de seguridad (la API acepta hasta 999.99)
+    public float velocidadInicial = 0.25f;  
+    public float factorAceleracion = 0.02f;   
+    public float velocidadMaxima = 50f;       
 
     public float CurrentSpeed
     {

@@ -1,14 +1,14 @@
 using UnityEngine;
 
-// Sprites pixel-art creados por codigo: moneda, gema, pincho y sierra.
 public static class GameSprites
 {
-    static Sprite coin, gem, tooth, saw;
+    static Sprite coin, gem, paper, pencil, floor;
 
     public static Sprite Coin { get { if (coin == null) coin = MakeCoin(); return coin; } }
     public static Sprite Gem { get { if (gem == null) gem = MakeGem(); return gem; } }
-    public static Sprite Tooth { get { if (tooth == null) tooth = MakeTooth(); return tooth; } }
-    public static Sprite Saw { get { if (saw == null) saw = MakeSaw(); return saw; } }
+    public static Sprite Paper { get { if (paper == null) paper = MakePaper(); return paper; } }
+    public static Sprite Pencil { get { if (pencil == null) pencil = MakePencil(); return pencil; } }
+    public static Sprite Floor { get { if (floor == null) floor = MakeFloor(); return floor; } }
 
     static Texture2D Blank(int w, int h)
     {
@@ -74,48 +74,80 @@ public static class GameSprites
         return Finish(t);
     }
 
-    static Sprite MakeTooth()
+    static Sprite MakePaper()
     {
-        var t = Blank(8, 8);
-        var edge = new Color32(60, 62, 75, 255);
-        var lightSide = new Color32(215, 220, 230, 255);
-        var darkSide = new Color32(165, 170, 185, 255);
-        var tip = new Color32(235, 70, 70, 255);
+        var t = Blank(16, 8);
+        var edge = new Color32(120, 120, 135, 255);
+        var paperC = new Color32(248, 248, 240, 255);
+        var line = new Color32(90, 130, 215, 255);
+        var red = new Color32(210, 40, 40, 255);
         for (int y = 0; y < 8; y++)
         {
-            float hw = (7 - y) * 0.5f + 0.5f;
-            for (int x = 0; x < 8; x++)
+            for (int x = 1; x < 15; x++)
             {
-                float dx = Mathf.Abs(x - 3.5f);
-                if (dx > hw) continue;
+                bool border = x == 1 || x == 14 || y == 0 || y == 7;
+                t.SetPixel(x, y, border ? edge : paperC);
+            }
+        }
+        // renglones
+        for (int x = 3; x <= 8; x++) { t.SetPixel(x, 5, line); t.SetPixel(x, 3, line); }
+        // "0" rojo (anillo de 4x5)
+        for (int x = 10; x <= 12; x++) { t.SetPixel(x, 2, red); t.SetPixel(x, 6, red); }
+        for (int y = 3; y <= 5; y++) { t.SetPixel(10, y, red); t.SetPixel(12, y, red); }
+        return Finish(t);
+    }
+
+    static Sprite MakePencil()
+    {
+        var t = Blank(16, 16);
+        var pink = new Color32(240, 140, 150, 255);
+        var metal = new Color32(175, 180, 195, 255);
+        var yel = new Color32(250, 205, 40, 255);
+        var yelDark = new Color32(210, 160, 20, 255);
+        var wood = new Color32(235, 200, 150, 255);
+        var lead = new Color32(50, 50, 60, 255);
+        for (int y = 0; y < 16; y++)
+        {
+            for (int x = 0; x < 16; x++)
+            {
+                int diff = x - y;
+                if (Mathf.Abs(diff) > 1) continue;
+                int s = (x + y) / 2;
                 Color32 c;
-                if (dx > hw - 1f || y == 0) c = edge;
-                else if (y >= 5) c = tip;
-                else c = x < 4 ? lightSide : darkSide;
+                if (s <= 2) c = pink;
+                else if (s == 3) c = metal;
+                else if (s <= 11) c = diff == 1 ? yelDark : yel;
+                else if (s <= 13) c = wood;
+                else c = lead;
                 t.SetPixel(x, y, c);
             }
         }
         return Finish(t);
     }
 
-    static Sprite MakeSaw()
+    static Sprite MakeFloor()
     {
         var t = Blank(16, 16);
-        var dark = new Color32(60, 62, 75, 255);
-        var steel = new Color32(195, 200, 212, 255);
-        var red = new Color32(190, 55, 55, 255);
+        var green = new Color32(74, 150, 70, 255);
+        var greenL = new Color32(110, 185, 95, 255);
+        var greenD = new Color32(40, 100, 50, 255);
+        var brick = new Color32(176, 96, 78, 255);
+        var brickD = new Color32(140, 72, 60, 255);
+        var mortar = new Color32(215, 200, 185, 255);
         for (int y = 0; y < 16; y++)
         {
             for (int x = 0; x < 16; x++)
             {
-                float dx = x - 7.5f, dy = y - 7.5f;
-                float r = Mathf.Sqrt(dx * dx + dy * dy);
-                float ang = Mathf.Atan2(dy, dx);
-                float rad = 5.2f + (Mathf.Sin(ang * 8f) > 0f ? 2.6f : 0f);
-                if (r > rad) continue;
-                Color32 c = r > rad - 1.3f ? dark : steel;
-                if (r < 2.4f) c = red;
-                if (r < 1f) c = dark;
+                Color32 c;
+                if (y >= 12) c = ((x * 7 + y * 3) % 5 == 0) ? greenL : green;
+                else if (y == 11) c = greenD;
+                else
+                {
+                    int row = y / 4;
+                    int off = (row % 2 == 0) ? 0 : 4;
+                    bool mortarLine = (y % 4 == 3) || ((x + off) % 8 == 0);
+                    c = mortarLine ? mortar : ((x + y) % 6 == 0 ? brickD : brick);
+                }
                 t.SetPixel(x, y, c);
             }
         }

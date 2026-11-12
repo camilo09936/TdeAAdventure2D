@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Ranking global: los 10 mejores puntajes, tal como los entrega la API.
 public partial class MainMenu
 {
     static readonly float[] ColX = { 0.03f, 0.14f, 0.60f };

@@ -1,7 +1,5 @@
 using UnityEngine;
 
-// Dificultad segun la altura (en metros). 0 = facil, 1 = maximo.
-// Llega al maximo a los 400 m. Cambia 400f para hacerlo mas rapido o mas lento.
 public static class Difficulty
 {
     public const float MetersPerLevel = 50f;

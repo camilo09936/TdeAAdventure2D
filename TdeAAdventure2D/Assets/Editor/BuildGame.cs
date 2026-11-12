@@ -2,17 +2,14 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-// Prepara las imagenes (fondo y personaje) y arma la escena del juego.
-// Para ejecutarlo: menu Tools > TDEA > Construir juego.
 public static partial class BuildGame
 {
     const string SpritesDir = "Assets/Sprites";
     const float PlayerHeightUnits = 1.6f;
 
-    // Zona util del fondo (sin el borde blanco de la imagen), en pixeles
     const float BgCropX = 28f, BgCropY = 18f, BgCropW = 976f, BgCropH = 566f;
     const float BgHeightUnits = 10f;
-    const float GroundFraction = 0.606f; // posicion del borde verde medida desde arriba
+    const float GroundFraction = 0.606f; 
 
     [MenuItem("Tools/TDEA/Construir juego")]
     public static void Build()
@@ -28,7 +25,7 @@ public static partial class BuildGame
             return;
         }
 
-        AssetDatabase.DeleteAsset(SpritesDir + "/pilar.png"); // ya no se usa
+        AssetDatabase.DeleteAsset(SpritesDir + "/pilar.png"); 
 
         Sprite bg = BuildBackground(fondoPath);
         Sprite[] frames = BuildCharacter(personajePath);

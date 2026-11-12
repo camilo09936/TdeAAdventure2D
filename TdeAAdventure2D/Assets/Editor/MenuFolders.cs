@@ -1,6 +1,5 @@
 using UnityEditor;
 
-// Crea sola la carpeta Assets/Resources/Menu, donde van el logo y el fondo del menu.
 [InitializeOnLoad]
 public static class MenuFolders
 {

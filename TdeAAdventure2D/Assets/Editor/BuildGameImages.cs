@@ -35,14 +35,12 @@ public static partial class BuildGame
     {
         string pngPath = SpritesDir + "/personaje_sheet.png";
 
-        // Leer el JPG (Unity lo carga SIN canal alfa)
         var src = new Texture2D(2, 2);
         src.LoadImage(File.ReadAllBytes(Path.Combine(Directory.GetCurrentDirectory(), originalPath)));
         int w = src.width, h = src.height;
         Color32[] px = src.GetPixels32();
         Object.DestroyImmediate(src);
 
-        // Volver transparente el fondo blanco que toca los bordes
         var isBg = new bool[px.Length];
         var stack = new Stack<int>();
 
@@ -74,7 +72,6 @@ public static partial class BuildGame
             if (isBg[i]) { px[i] = new Color32(0, 0, 0, 0); clear++; }
         }
 
-        // Textura nueva RGBA32 para que el alfa se conserve en el PNG
         var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
         tex.SetPixels32(px);
         tex.Apply();
@@ -82,7 +79,7 @@ public static partial class BuildGame
         Object.DestroyImmediate(tex);
         AssetDatabase.ImportAsset(pngPath, ImportAssetOptions.ForceSynchronousImport);
 
-        // Cortar en 6 cuadros iguales
+
         const int frameCount = 6;
         int fw = w / frameCount;
         var imp = (TextureImporter)AssetImporter.GetAtPath(pngPath);
@@ -102,7 +99,7 @@ public static partial class BuildGame
                 name = "personaje_" + i,
                 rect = new Rect(i * fw, 0, fw, h),
                 alignment = (int)SpriteAlignment.Custom,
-                pivot = new Vector2(0.5f, 0f) // los pies quedan en el origen
+                pivot = new Vector2(0.5f, 0f) 
             };
         }
         imp.spritesheet = metas;

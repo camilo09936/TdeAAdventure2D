@@ -29,7 +29,6 @@ public partial class GameManager : MonoBehaviour
     int lastLevel = 1;
     bool newBest, guardando;
     string popText = "", deathReason = "", errorGuardando = "";
-    //public static bool Spend(int amount) { return ScoreBoard.Spend(amount); }
 
     void Awake()
     {
@@ -144,8 +143,9 @@ public partial class GameManager : MonoBehaviour
     public void AddPoints(int pts)
     {
         if (Dead || InMenu) return;
-        Coins++;
-        popText = pts >= 25 ? "+1 gema" : "+1 moneda";
+        int ganadas = pts >= 25 ? 3 : 1;
+        Coins += ganadas;
+        popText = ganadas == 3 ? "+3 monedas" : "+1 moneda";
         popTimer = 0.8f;
     }
 
@@ -153,6 +153,7 @@ public partial class GameManager : MonoBehaviour
     {
         if (Dead || InMenu) return;
         Dead = true;
+        AudioManager.Play("die");
         deathReason = reason;
         SetPlayerActive(false);
         StartCoroutine(GuardarPartida());

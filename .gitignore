@@ -116,3 +116,6 @@ InitTestScene*.unity*
 **/[Bb]uilds/
 **/[Ll]ogs/
 **/[Uu]ser[Ss]ettings/
+
+**/_Recovery/
+**/_Recovery.meta

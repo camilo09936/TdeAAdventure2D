@@ -1,6 +1,5 @@
 using UnityEngine;
 
-// Nubecita de polvo: crece un poco, se frena y se desvanece sola.
 public class Dust : MonoBehaviour
 {
     static Sprite sprite;

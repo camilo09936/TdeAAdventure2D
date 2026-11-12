@@ -1,6 +1,5 @@
 using UnityEngine;
 
-// Pantalla del juego: marcador, avisos de nivel y pantalla de "Perdiste".
 public partial class GameManager
 {
     GUIStyle left, right, mid;
@@ -39,13 +38,12 @@ public partial class GameManager
         int best = me != null ? Mathf.Max(me.puntuacionMaxima, Score) : Score;
         string nombre = me != null ? me.nombreUsuario : "";
 
-        // Marcador
         Text(new Rect(20f * s, 10f * s, 500f * s, 44f * s), "Puntos: " + Score, left, sBig, white);
         Text(new Rect(20f * s, 54f * s, 500f * s, 32f * s), "Altura: " + h + " m    Monedas: " + Coins, left, sMed, white);
         Text(new Rect(20f * s, 84f * s, 500f * s, 32f * s), "Nivel " + Level, left, sMed, cyan);
-        Text(new Rect(sw - 520f * s, 10f * s, 500f * s, 36f * s), nombre, right, sMed, cyan);
-        Text(new Rect(sw - 520f * s, 44f * s, 500f * s, 36f * s), "Mejor: " + best, right, sMed, white);
-        Text(new Rect(sw - 520f * s, 78f * s, 500f * s, 36f * s), "Monedero: " + Wallet, right, sMed, gold);
+        Text(new Rect(sw - 520f * s, 40f * s, 500f * s, 36f * s), nombre, right, sMed, cyan);
+        Text(new Rect(sw - 520f * s, 74f * s, 500f * s, 36f * s), "Mejor: " + best, right, sMed, white);
+        Text(new Rect(sw - 520f * s, 108f * s, 500f * s, 36f * s), "Monedero: " + Wallet, right, sMed, gold);
 
         if (!Dead && popTimer > 0f)
             Text(new Rect(0f, 120f * s, sw, 50f * s), popText, mid, sBig, gold);

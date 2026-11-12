@@ -3,7 +3,6 @@ using UnityEngine;
 
 public enum PlatformType { Static, Moving, Falling }
 
-// Compatibilidad entre versiones de Unity para la velocidad del Rigidbody2D
 public static class RbCompat
 {
     public static Vector2 GetVel(Rigidbody2D rb)
@@ -25,8 +24,6 @@ public static class RbCompat
     }
 }
 
-// Plataforma de un solo sentido: se puede atravesar desde abajo y pararse arriba.
-// Static = fija, Moving = se mueve de lado a lado, Falling = cae al pararse encima.
 public class Platform : MonoBehaviour
 {
     public PlatformType type;
@@ -106,7 +103,7 @@ public class Platform : MonoBehaviour
     {
         if (type != PlatformType.Falling || triggered) return;
         if (c.collider.GetComponent<PlayerController>() == null) return;
-        if (c.transform.position.y < transform.position.y) return; // solo si lo pisa desde arriba
+        if (c.transform.position.y < transform.position.y) return; 
         triggered = true;
         StartCoroutine(Fall());
     }
@@ -125,7 +122,7 @@ public class Platform : MonoBehaviour
             yield return null;
         }
 
-        col.enabled = false; // el personaje cae junto con la plataforma
+        col.enabled = false; 
         float speed = 0f;
         float life = 0f;
         while (life < 3f)

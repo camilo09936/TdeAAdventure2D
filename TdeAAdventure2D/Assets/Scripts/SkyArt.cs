@@ -1,6 +1,5 @@
 using UnityEngine;
 
-// Dibujos del cielo hechos por codigo (no hay que importar nada): degradado, nubes y puntos de luz.
 public static class SkyArt
 {
     static Sprite Make(Texture2D t, float ppu)
@@ -14,7 +13,6 @@ public static class SkyArt
         return s;
     }
 
-    // Degradado vertical blanco: abajo claro, arriba un poco mas oscuro. Se tine con el color del sprite.
     public static Sprite Gradient()
     {
         var t = new Texture2D(2, 64, TextureFormat.RGBA32, false);
@@ -23,10 +21,9 @@ public static class SkyArt
             float v = Mathf.Lerp(1f, 0.68f, y / 63f);
             for (int x = 0; x < 2; x++) t.SetPixel(x, y, new Color(v, v, v, 1f));
         }
-        return Make(t, 64f);   // 2 x 64 px = 0.03 x 1 unidades (se estira por escala)
+        return Make(t, 64f);   
     }
 
-    // Nube: varias bolitas suaves juntas con la base plana
     public static Sprite Cloud(int seed)
     {
         const int W = 128, H = 64;
@@ -37,7 +34,7 @@ public static class SkyArt
         {
             float k = n == 1 ? 0.5f : i / (float)(n - 1);
             cx[i] = W * (0.2f + 0.6f * k) + (float)(rnd.NextDouble() - 0.5) * 6f;
-            float mid = 1f - Mathf.Abs(k - 0.5f) * 2f;          // las del centro son mas grandes y altas
+            float mid = 1f - Mathf.Abs(k - 0.5f) * 2f;         
             r[i] = H * (0.20f + 0.20f * mid) + (float)rnd.NextDouble() * 4f;
             cy[i] = H * 0.30f + mid * H * 0.12f;
         }
@@ -53,15 +50,14 @@ public static class SkyArt
                     float d = Vector2.Distance(new Vector2(x, y), new Vector2(cx[i], cy[i]));
                     a = Mathf.Max(a, Mathf.Clamp01((1f - d / r[i]) * 2.4f));
                 }
-                a *= Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(y / (H * 0.22f)));   // base plana y suave
+                a *= Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(y / (H * 0.22f)));   
                 float shade = Mathf.Lerp(0.84f, 1f, y / (float)H);
                 t.SetPixel(x, y, new Color(shade, shade, shade, a));
             }
         }
-        return Make(t, 32f);   // 4 x 2 unidades
+        return Make(t, 32f);   
     }
 
-    // Punto suave: sirve para estrellas y luna
     public static Sprite Dot()
     {
         const int S = 32;
@@ -75,6 +71,6 @@ public static class SkyArt
                 t.SetPixel(x, y, new Color(1f, 1f, 1f, a));
             }
         }
-        return Make(t, 32f);   // 1 x 1 unidades
+        return Make(t, 32f);  
     }
 }

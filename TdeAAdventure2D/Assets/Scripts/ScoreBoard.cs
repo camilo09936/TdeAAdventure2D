@@ -6,11 +6,11 @@ using UnityEngine;
 public class PlayerRecord
 {
     public string name;
-    public int best;     // mejor puntaje en una sola partida
-    public int total;    // suma de los puntajes de todas sus partidas
-    public int games;    // partidas jugadas
-    public int wallet;   // monedas para gastar en la tienda
-    public string last;  // fecha de la ultima partida
+    public int best;   
+    public int total;   
+    public int games;   
+    public int wallet;  
+    public string last; 
 }
 
 [Serializable]
@@ -19,7 +19,6 @@ public class ScoreData
     public List<PlayerRecord> players = new List<PlayerRecord>();
 }
 
-// Registro de jugadores y puntajes. Se guarda en el equipo (PlayerPrefs, como texto JSON).
 public static class ScoreBoard
 {
     const string Key = "TDEA_SCORES";
@@ -28,7 +27,6 @@ public static class ScoreBoard
 
     static ScoreData data;
 
-    // Jugador que esta jugando ahora (vacio si nadie entro)
     public static string CurrentName { get; private set; }
 
     static ScoreData Data
@@ -61,7 +59,6 @@ public static class ScoreBoard
         PlayerPrefs.Save();
     }
 
-    // Quita espacios de los lados y limita el largo del nombre
     public static string Clean(string raw)
     {
         if (string.IsNullOrEmpty(raw)) return "";
@@ -87,7 +84,6 @@ public static class ScoreBoard
         get { return PlayerPrefs.GetString(LastKey, ""); }
     }
 
-    // Entra con un nombre. Si es nuevo lo registra; "Ana" y "ana" son el mismo jugador.
     public static void SetCurrent(string name)
     {
         name = Clean(name);
@@ -105,7 +101,6 @@ public static class ScoreBoard
         PlayerPrefs.Save();
     }
 
-    // Guarda una partida terminada. Devuelve el puesto en el ranking de mejores puntajes (1 = primero).
     public static int Submit(int score, out bool newBest)
     {
         newBest = false;
@@ -133,7 +128,6 @@ public static class ScoreBoard
         return rank;
     }
 
-    // Jugadores que ya jugaron, del mejor puntaje al menor
     public static List<PlayerRecord> ByBest()
     {
         var l = new List<PlayerRecord>(Data.players);
@@ -146,7 +140,6 @@ public static class ScoreBoard
         return l;
     }
 
-    // Jugadores que ya jugaron, del puntaje total mayor al menor
     public static List<PlayerRecord> ByTotal()
     {
         var l = new List<PlayerRecord>(Data.players);
@@ -159,7 +152,6 @@ public static class ScoreBoard
         return l;
     }
 
-    // Monedero del jugador actual: para la tienda de skins y objetos
     public static int Wallet
     {
         get

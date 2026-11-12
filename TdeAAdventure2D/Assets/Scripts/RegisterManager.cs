@@ -61,7 +61,6 @@ public class RegisterManager : MonoBehaviour
         enviando = false;
         Debug.Log("Registro correcto -> " + jugador.nombreUsuario + " (id " + jugador.id + ")");
 
-        // Volvemos al login y avisamos que ya puede iniciar sesion
         var ui = FindFirstObjectByType<UIManager>();
         var login = FindFirstObjectByType<LoginManager>();
         if (ui != null) ui.MostrarLogin();
